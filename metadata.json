@@ -1,0 +1,6 @@
+{
+  "name": "TOWSIF LIVE TV",
+  "description": "Watch free live TV & sports with high-quality streaming support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
