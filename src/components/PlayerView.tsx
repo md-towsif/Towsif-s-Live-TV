@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { Channel } from "../types";
 import { FALLBACK_LOGO } from "../data";
-import { Play, Pause, Volume2, VolumeX, Maximize2, Tv } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Tv } from "lucide-react";
 
 interface PlayerViewProps {
   selectedChannel: Channel | null;
@@ -12,6 +12,7 @@ interface PlayerViewProps {
   isMuted: boolean;
   onToggleMute: () => void;
   onToggleFullscreen: () => void;
+  isWebFullscreen: boolean;
 }
 
 export default function PlayerView({
@@ -22,6 +23,7 @@ export default function PlayerView({
   isMuted,
   onToggleMute,
   onToggleFullscreen,
+  isWebFullscreen,
 }: PlayerViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -136,7 +138,13 @@ export default function PlayerView({
   return (
     <div className="flex-1 flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto w-full">
       {/* 16:9 Video Canvas Wrapper */}
-      <div className="relative w-full aspect-video bg-black rounded-2xl border border-[#1c2d45] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] group/player">
+      <div 
+        className={`bg-black group/player transition-all duration-300 ${
+          isWebFullscreen
+            ? "fixed inset-0 w-screen h-screen z-[99999] rounded-none border-none shadow-none"
+            : "relative w-full aspect-video rounded-2xl border border-[#1c2d45] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+        }`}
+      >
         {!selectedChannel ? (
           /* Empty/Idle channel State */
           <div className="absolute inset-0 bg-gradient-to-tr from-[#080c18] to-[#0f1b32] flex flex-col items-center justify-center gap-4 text-center px-4 z-10">
@@ -228,10 +236,10 @@ export default function PlayerView({
               <div className="flex items-center gap-3">
                 <button
                   onClick={onToggleFullscreen}
-                  className="p-2 bg-[#0d1221] hover:bg-[#1c2d45] border border-white/10 rounded-lg text-white hover:text-[#00e5ff] transition duration-150 cursor-pointer"
-                  title="Fullscreen"
+                  className="p-2 bg-[#0d1221] hover:bg-[#1c2d45] border border-white/10 rounded-lg text-white hover:text-[#00e5ff] transition duration-150 cursor-pointer animate-pulse"
+                  title={isWebFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                 >
-                  <Maximize2 className="w-4 h-4" />
+                  {isWebFullscreen ? <Minimize2 className="w-4 h-4 text-cyan-400" /> : <Maximize2 className="w-4 h-4" />}
                 </button>
               </div>
             </div>

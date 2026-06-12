@@ -40,19 +40,80 @@ export default function App() {
     setIsMuted(video.muted);
   }, []);
 
+  const [isWebFullscreen, setIsWebFullscreen] = useState(false);
+
   // Fullscreen controller
   const handleToggleFullscreen = useCallback(() => {
     const container = appContainerRef.current;
     if (!container) return;
 
-    if (!document.fullscreenElement) {
-      container.requestFullscreen?.()
-        .catch((err) => {
-          console.error("Fullscreen request failed", err);
+    const isCurrentlyFullscreen = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+
+    if (!isCurrentlyFullscreen && !isWebFullscreen) {
+      // Toggle web fullscreen on
+      setIsWebFullscreen(true);
+      
+      // Attempt native fullscreen on container
+      const reqFullscreen =
+        container.requestFullscreen ||
+        (container as any).webkitRequestFullscreen ||
+        (container as any).mozRequestFullScreen ||
+        (container as any).msRequestFullscreen;
+
+      if (reqFullscreen) {
+        reqFullscreen.call(container).catch((err) => {
+          console.warn("Native fullscreen request failed or blocked:", err);
+          // Fallback to web fullscreen which we already turned on
         });
+      }
     } else {
-      document.exitFullscreen?.();
+      // Toggle fullscreen off
+      setIsWebFullscreen(false);
+
+      const exitFullscreen =
+        document.exitFullscreen ||
+        (document as any).webkitExitFullscreen ||
+        (document as any).mozCancelFullScreen ||
+        (document as any).msExitFullscreen;
+
+      if (exitFullscreen && isCurrentlyFullscreen) {
+        exitFullscreen.call(document).catch((err) => {
+          console.warn("Failed to exit native fullscreen:", err);
+        });
+      }
     }
+  }, [isWebFullscreen]);
+
+  // Sync state if native exit occurs
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      if (!isCurrentlyFullscreen) {
+        setIsWebFullscreen(false);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
   }, []);
 
   // Select channel helper
@@ -108,6 +169,13 @@ export default function App() {
           handleToggleFullscreen();
           break;
 
+        case "Escape":
+          if (isWebFullscreen) {
+            e.preventDefault();
+            setIsWebFullscreen(false);
+          }
+          break;
+
         case "ArrowDown": {
           e.preventDefault();
           const currentIndex = selectedChannel 
@@ -153,7 +221,7 @@ export default function App() {
       {/* 3. Main Split Workspace Body */}
       <main className="flex-1 flex flex-col md:flex-row pt-[100px] pb-[48px] h-screen overflow-hidden">
         {/* Left Side: Video Canvas & Meta */}
-        <PlayerView
+         <PlayerView
           selectedChannel={selectedChannel}
           videoRef={videoRef}
           isPlaying={isPlaying}
@@ -161,6 +229,7 @@ export default function App() {
           isMuted={isMuted}
           onToggleMute={handleToggleMute}
           onToggleFullscreen={handleToggleFullscreen}
+          isWebFullscreen={isWebFullscreen}
         />
 
         {/* Right Side: Channel Sidebar & Search Filters */}

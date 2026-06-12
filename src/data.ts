@@ -115,5 +115,9 @@ export const TICKER_MESSAGES = [
   "🎉 100+ Free Live Channels — Sports, FIFA World Cup, News, Movies & Cartoons",
   "Follow us on Facebook for stream updates and feedback!",
   "Press 'F' for Fullscreen, 'Space' to play/pause, 'M' to mute/unmute, and 'Up / Down' arrows to scan channels!",
-  "TOWSIF LIVE TV provides high-performance, low-latency live streaming protocols natively."
+  "TOWSIF LIVE TV provides high-performance, low-latency live streaming protocols natively.",
+  "🎉 ১০০টিরও বেশি ফ্রি লাইভ চ্যানেল — খেলাধুলা, ফিফা বিশ্বকাপ, সংবাদ, সিনেমা ও কার্টুন",
+  "স্ট্রিম আপডেট এবং মতামতের জন্য ফেসবুকে আমাদের ফলো করুন!",
+  "ফুলস্ক্রিনের জন্য 'F' চাপুন, প্লে/পজ করার জন্য 'Space', মিউট/আনমিউট করার জন্য 'M', এবং চ্যানেল স্ক্যান করার জন্য 'Up / Down' অ্যারো ব্যবহার করুন!",
+  "TOWSIF LIVE TV স্বাভাবিকভাবেই উচ্চ-পারফরম্যান্স এবং স্বল্প-লেটেন্সির লাইভ স্ট্রিমিং প্রোটোকল প্রদান করে।",
 ];
