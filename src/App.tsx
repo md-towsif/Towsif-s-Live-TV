@@ -116,6 +116,17 @@ export default function App() {
     };
   }, []);
 
+  // Disable right click (Right check button) across the website
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+
   // Select channel helper
   const handleSelectChannel = useCallback((channel: Channel) => {
     setSelectedChannel(channel);

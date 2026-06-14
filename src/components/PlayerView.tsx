@@ -29,6 +29,41 @@ export default function PlayerView({
   const [hasError, setHasError] = useState(false);
   const hlsRef = useRef<Hls | null>(null);
 
+  const [showControls, setShowControls] = useState(true);
+  const timeoutRef = useRef<any>(null);
+
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = window.setTimeout(() => {
+      setShowControls(false);
+    }, 2500); // Hide controls after 2.5 seconds of inactivity
+  };
+
+  const handleMouseMove = () => {
+    resetControlsTimeout();
+  };
+
+  const handleMouseLeave = () => {
+    if (isPlaying) {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      setShowControls(false);
+    }
+  };
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [isPlaying, selectedChannel]);
+
   // Setup stream whenever selected channel changes
   useEffect(() => {
     const video = videoRef.current;
@@ -139,7 +174,12 @@ export default function PlayerView({
     <div className="flex-1 flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto w-full">
       {/* 16:9 Video Canvas Wrapper */}
       <div 
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         className={`bg-black group/player transition-all duration-300 ${
+          !showControls && isPlaying ? "cursor-none" : "cursor-default"
+        } ${
           isWebFullscreen
             ? "fixed inset-0 w-screen h-screen z-[99999] rounded-none border-none shadow-none"
             : "relative w-full aspect-video rounded-2xl border border-[#1c2d45] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
@@ -201,13 +241,32 @@ export default function PlayerView({
             {/* Main Video Component */}
             <video
               ref={videoRef}
-              className="w-full h-full object-contain bg-black cursor-pointer"
+              className="w-full h-full object-contain bg-black"
               playsInline
-              onClick={onTogglePlay}
             />
 
+            {/* Center Play Check Overlay (Only show when PAUSED) */}
+            {!isPlaying && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTogglePlay();
+                  }}
+                  className="pointer-events-auto flex items-center justify-center w-16 h-16 rounded-full bg-black/60 hover:bg-[#00e5ff]/20 border border-white/20 hover:border-[#00e5ff] text-white hover:text-[#00e5ff] shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-sm transition-all duration-300 transform active:scale-95 focus:outline-none"
+                  title="Play"
+                >
+                  <Play className="w-7 h-7 fill-current ml-1" />
+                </button>
+              </div>
+            )}
+
             {/* Direct Channel Branding Watermark Over Player */}
-            <div className="absolute bottom-4 left-4 z-10 pointer-events-none bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+            <div 
+              className={`absolute bottom-4 left-4 z-10 pointer-events-none bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 transition-opacity duration-300 ${
+                showControls ? "opacity-100" : "opacity-0"
+              }`}
+            >
               <span className="w-2 h-2 bg-[#00e5ff] rounded-full animate-ping"></span>
               <span className="font-orbitron font-extrabold text-[0.62rem] sm:text-xs text-white tracking-widest uppercase">
                 {selectedChannel.name}
@@ -215,7 +274,11 @@ export default function PlayerView({
             </div>
 
             {/* Overlay Playback HUD on Hover */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 flex items-center justify-between opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 z-10">
+            <div 
+              className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 flex items-center justify-between transition-opacity duration-300 z-10 ${
+                showControls ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+              }`}
+            >
               <div className="flex items-center gap-3">
                 <button
                   onClick={onTogglePlay}

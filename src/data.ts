@@ -46,7 +46,7 @@ export const CHANNELS: Channel[] = [
   { id: 37, name: "GTV", cat: "Bangladesh", logo: "https://i.ibb.co.com/cc5rftrN/Gazi-TV.png", url: "https://app24.jagobd.com.bd/c3VydmVyX8RpbEU9Mi8xNy8yMFDEEHGcfRgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcEdsEfeDeKiNkVN3PTOmdFseWRtaW51aiPhnPTI2/gazibdz.stream/tracks-v1a1/mono.m3u8" },
   { id: 38, name: "Maasranga TV", cat: "Bangladesh", logo: "https://i.ibb.co.com/S7c6STRZ/Maasranga-TV.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/1722.m3u8" },
   { id: 39, name: "Deepto TV", cat: "Bangladesh", logo: "https://imglink.cc/cdn/2ODX-FAGY4.png", url: "https://byphdgllyk.gpcdn.net/hls/deeptotv/0_1/index.m3u8" },
-  { id: 40, name: "Channel I", cat: "Bangladesh", logo: "https://imglink.cc/cdn/H038J5LwdN.png", url: "https://tvsen6.aynaott.com/channeli/index.m3u8" },
+  { id: 40, name: "Channel I", cat: "Bangladesh", logo: "https://imglink.cc/cdn/H038J5LwdN.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1714/output/index.m3u8" },
   { id: 41, name: "Bangla TV", cat: "Bangladesh", logo: "https://imglink.cc/cdn/YQ8D9Wf0IT.png", url: "https://tvsen6.aynaott.com/banglatv/index.m3u8" },
   { id: 42, name: "Jago News 24", cat: "Bangladesh", logo: "https://i.ibb.co.com/KpRt3cT5/Jago-News-24.png", url: "https://app.ncare.live/live-orgin/jagonews24.stream/live-orgin/jagonews24.stream/chunks.m3u8" },
   { id: 43, name: "DBC News", cat: "Bangladesh", logo: "https://i.ibb.co.com/TMKLMXs9/DBC-News.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8" },
