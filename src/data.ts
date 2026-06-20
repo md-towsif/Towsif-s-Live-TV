@@ -5,7 +5,8 @@ export const CHANNELS: Channel[] = [
   { id: 1, name: "FIFA LIVE (Server 1)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://live.kooran12.cfd/tist1/index.m3u8" },
   { id: 2, name: "beIN Sports 1", cat: "Sports", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg", url: "https://edge22.776740.ir.cdn.ir/hls2/sport.m3u8" },
   { id: 3, name: "FIFA LIVE (Server 3)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://1nyaler.streamhostingcdn.top/stream/94/index.m3u8" },
-  { id: 4, name: "FIFA LIVE (Server 4)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://andro.226503.xyz/checklist/androstreamlivebs1.m3u8" },
+  { id: 114, name: "FIFA LIVE (Server 4)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://1nyaler.streamhostingcdn.top/stream/32/index.m3u8" },
+  { id: 4, name: "FIFA LIVE (Server 5)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://andro.226503.xyz/checklist/androstreamlivebs1.m3u8" },
   { id: 5, name: "Bein Sports XTRA", cat: "FIFA World Cup", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a39fb56eec.jpeg", url: "https://amg01334-amg01334c2-freelivesports-emea-6791.playouts.now.amagi.tv/playlist/amg01334-beinxtra-beinxtrausapp-freelivesportsemea/playlist.m3u8" },
   { id: 6, name: "FIFA+ English", cat: "FIFA World Cup", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3a4c03f4a.png", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8" },
   { id: 7, name: "FIFA+ Brazil", cat: "FIFA World Cup", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3b125db37.png", url: "https://e3be9ac5.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/TEctbXhfRklGQVBsdXNQb3J0dWd1ZXNlX0hMUw/playlist.m3u8" },
@@ -126,7 +127,7 @@ export const CHANNELS: Channel[] = [
 
   // Entertainment
   { id: 97, name: "Sony Aath", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/SonyAath/tracks-v1a1/mono.m3u8" },
-  { id: 98, name: "Star Jalsha HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "https://tvsen3.aynaott.com/n64PH4YL/tracks-v1a1/mono.ts.m3u8" },
+  { id: 98, name: "Star Jalsha HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "https://yupptvcatchupire.yuppcdn.net/preview/starjalsha/1800.m3u8" },
   { id: 99, name: "Zee Bangla HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/1_dUKmt1Oe.png", url: "http://103.161.153.165:8000/play/zeebnhd/index.m3u8" },
   { id: 100, name: "Sony TV HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/SonyTv/tracks-v1a1/mono.m3u8" },
   { id: 101, name: "Colors HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://103.229.254.25:7001/play/a0a1/index.m3u8" },
