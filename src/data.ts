@@ -36,7 +36,7 @@ export const CHANNELS: Channel[] = [
   { id: 28, name: "T Sports HD Server 2", cat: "Bangladesh", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a4a8e28569.png", url: "https://live.tsports.com/mobile_hls/tsports_live_2/playlist.m3u8" },
   { id: 283, name: "T Sports HD Server 3", cat: "Bangladesh", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a4a6f551f8.png", url: "https://live.tsports.com/mobile_hls/tsports_live_3/playlist.m3u8" },
   { id: 29, name: "Boishakhi TV", cat: "Bangladesh", logo: "https://i.ibb.co.com/sptqqqj9/Boishakhi-TV.png", url: "https://tvsen6.aynaott.com/boishakhitv/index.m3u8" },
-  { id: 30, name: "BTV", cat: "Bangladesh", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3c575ce13.png", url: "http://172.31.235.10:8080/hls/1-btv/0_1/index.m3u8" },
+  { id: 30, name: "Islamic TV", cat: "Bangladesh", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3c575ce13.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1713/output/index.m3u8" },
   { id: 31, name: "Somoy TV", cat: "Bangladesh", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3badb5621.png", url: "https://live.thebosstv.com:30443/dwlive/Somoy-TV/playlist.m3u8" },
   { id: 32, name: "Jamuna TV", cat: "Bangladesh", logo: "https://www.jamuna.tv/uploads/settings/default_img_1.jpg", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/1701-audio_113312_eng=113200-video=1692000.m3u8" },
   { id: 33, name: "Channel 24", cat: "Bangladesh", logo: "https://i.ibb.co.com/v65cfQ96/Channel-24.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/1703-audio_113332_eng=113200-video=2202800.m3u8" },
@@ -46,7 +46,7 @@ export const CHANNELS: Channel[] = [
   { id: 37, name: "GTV", cat: "Bangladesh", logo: "https://i.ibb.co.com/cc5rftrN/Gazi-TV.png", url: "https://app24.jagobd.com.bd/c3VydmVyX8RpbEU9Mi8xNy8yMFDEEHGcfRgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcEdsEfeDeKiNkVN3PTOmdFseWRtaW51aiPhnPTI2/gazibdz.stream/tracks-v1a1/mono.m3u8" },
   { id: 38, name: "Maasranga TV", cat: "Bangladesh", logo: "https://i.ibb.co.com/S7c6STRZ/Maasranga-TV.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/1722.m3u8" },
   { id: 39, name: "Deepto TV", cat: "Bangladesh", logo: "https://imglink.cc/cdn/2ODX-FAGY4.png", url: "https://byphdgllyk.gpcdn.net/hls/deeptotv/0_1/index.m3u8" },
-  { id: 40, name: "Channel I", cat: "Bangladesh", logo: "https://imglink.cc/cdn/H038J5LwdN.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1714/output/index.m3u8" },
+  { id: 40, name: "Channel I", cat: "Bangladesh", logo: "https://imglink.cc/cdn/H038J5LwdN.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8" },
   { id: 41, name: "Bangla TV", cat: "Bangladesh", logo: "https://imglink.cc/cdn/YQ8D9Wf0IT.png", url: "https://tvsen6.aynaott.com/banglatv/index.m3u8" },
   { id: 42, name: "Jago News 24", cat: "Bangladesh", logo: "https://i.ibb.co.com/KpRt3cT5/Jago-News-24.png", url: "https://app.ncare.live/live-orgin/jagonews24.stream/live-orgin/jagonews24.stream/chunks.m3u8" },
   { id: 43, name: "DBC News", cat: "Bangladesh", logo: "https://i.ibb.co.com/TMKLMXs9/DBC-News.png", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8" },
@@ -64,7 +64,7 @@ export const CHANNELS: Channel[] = [
   { id: 51, name: "PTV Sports", cat: "Pakistan", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3bdf4d3da.jpg", url: "https://tvsen5.aynaott.com/PtvSports/index.m3u8" },
   
   // Entertainment
-  { id: 52, name: "Star Jalsha", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "https://yupptvcatchupire.yuppcdn.net/preview/starjalsha/1800.m3u8" },
+  { id: 52, name: "Star Jalsha", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/bdixbd.net_StarJalshaHD/video.m3u8" },
   { id: 53, name: "G Series Drama", cat: "Entertainment", logo: "https://imglink.cc/cdn/1_dUKmt1Oe.png", url: "https://vods2.aynaott.com/gseriesDrama/tracks-v1a1/mono.ts.m3u8" },
   { id: 54, name: "SRK TV", cat: "Entertainment", logo: "https://imglink.cc/cdn/uZtiXpPz29.png", url: "https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8" },
   
@@ -101,7 +101,7 @@ export const CHANNELS: Channel[] = [
   { id: 80, name: "Oggy & Cockroaches", cat: "Cartoon", logo: "https://imglink.cc/cdn/cZxNWhHkaZ.jpg", url: "https://live20.bozztv.com/giatvplayout7/giatv-210728/tracks-v1a1/mono.ts.m3u8" },
   { id: 81, name: "Mr Bean Animated", cat: "Cartoon", logo: "https://i.ibb.co.com/XfqV4B56/png-transparent-mr-bean-illustration-youtube-coloring-book-character-cartoon-mr-bean-television-chil.png", url: "https://amg00627-amg00627c29-rakuten-it-3989.playouts.now.amagi.tv/playlist/amg00627-banijayfast-mrbeanitcc-rakutenit/playlist.m3u8" },
   { id: 82, name: "Gopal Bhar TV", cat: "Cartoon", logo: "https://i.ibb.co.com/5xSF5mzh/Gopal-Bhar-animated-TV-series-title-card.jpg", url: "https://live20.bozztv.com/giatvplayout7/giatv-209611/tracks-v1a1/mono.ts.m3u8" },
-  { id: 83, name: "Duronto TV", cat: "Cartoon", logo: "https://i.ibb.co.com/Ld3Yw0PH/Duronto-TV.png", url: "https://tvsen6.aynaott.com/durontotv-live/index.m3u8" },
+  { id: 83, name: "Duronto TV", cat: "Cartoon", logo: "https://i.ibb.co.com/Ld3Yw0PH/Duronto-TV.png", url: "https://tvsen4.aynaott.com/durontotv/index.m3u8" },
   
   // News
   { id: 84, name: "Republic Bangla", cat: "News", logo: "https://imglink.cc/cdn/ndYg8AR85Y.jpg", url: "https://vg-republictvlive.akamaized.net/v1/manifest/611d79b11b77e2f571934fd80ca1413453772ac7/vglive-sk-456368/06e5afc2-a022-4e51-9131-4e33a6207c5c/1.m3u8" },
@@ -126,7 +126,7 @@ export const CHANNELS: Channel[] = [
 
   // Entertainment
   { id: 97, name: "Sony Aath", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/SonyAath/tracks-v1a1/mono.m3u8" },
-  { id: 98, name: "Star Jalsha HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/bdixbd.net_StarJalshaHD/video.m3u8" },
+  { id: 98, name: "Star Jalsha HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "https://tvsen3.aynaott.com/n64PH4YL/tracks-v1a1/mono.ts.m3u8" },
   { id: 99, name: "Zee Bangla HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/1_dUKmt1Oe.png", url: "http://103.161.153.165:8000/play/zeebnhd/index.m3u8" },
   { id: 100, name: "Sony TV HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/SonyTv/tracks-v1a1/mono.m3u8" },
   { id: 101, name: "Colors HD", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://103.229.254.25:7001/play/a0a1/index.m3u8" },
@@ -136,6 +136,7 @@ export const CHANNELS: Channel[] = [
   { id: 103, name: "Zee Cinema (Local)", cat: "Movies", logo: "https://imglink.cc/cdn/cScI5tEUjV.png", url: "http://103.161.153.165:8000/play/a01a/index.m3u8" },
   { id: 104, name: "Rakuten TV Action Movies", cat: "Movies", logo: "https://imglink.cc/cdn/cScI5tEUjV.png", url: "https://rakuten-actionmovies-1-gb.samsung.wurl.tv/playlist.m3u8" },
   { id: 105, name: "Plex Movies", cat: "Movies", logo: "https://imglink.cc/cdn/cScI5tEUjV.png", url: "https://linear-ot-126.vizio.plex.tv/playlist.m3u8" },
+  { id: 113, name: "The Movie Club", cat: "Movies", logo: "https://imglink.cc/cdn/cScI5tEUjV.png", url: "https://cc-r5hupcym5oehh.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-r5hupcym5oehh/SBUM/RunnTV/BollyFlix_IN/BollyFlix_IN.m3u8" },
 
   // News
   { id: 106, name: "BTV News", cat: "News", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3c575ce13.png", url: "https://streams.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/d96eb7f4-83c2-4472-9597-3568390a8ebf/index.m3u8" },
