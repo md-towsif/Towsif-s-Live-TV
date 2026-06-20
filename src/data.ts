@@ -64,7 +64,7 @@ export const CHANNELS: Channel[] = [
   { id: 51, name: "PTV Sports", cat: "Pakistan", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2a3bdf4d3da.jpg", url: "https://tvsen5.aynaott.com/PtvSports/index.m3u8" },
   
   // Entertainment
-  { id: 52, name: "Star Jalsha", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "http://198.195.239.50:8095/bdixbd.net_StarJalshaHD/video.m3u8" },
+  { id: 52, name: "Star Jalsha", cat: "Entertainment", logo: "https://imglink.cc/cdn/3TXPVSGzx5.png", url: "https://tvsen3.aynaott.com/n64PH4YL/tracks-v1a1/mono.ts.m3u8" },
   { id: 53, name: "G Series Drama", cat: "Entertainment", logo: "https://imglink.cc/cdn/1_dUKmt1Oe.png", url: "https://vods2.aynaott.com/gseriesDrama/tracks-v1a1/mono.ts.m3u8" },
   { id: 54, name: "SRK TV", cat: "Entertainment", logo: "https://imglink.cc/cdn/uZtiXpPz29.png", url: "https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8" },
   
@@ -152,6 +152,8 @@ export const TICKER_MESSAGES = [
   "Follow us on Facebook for stream updates and feedback!",
   "Press 'F' for Fullscreen, 'Space' to play/pause, 'M' to mute/unmute, and 'Up / Down' arrows to scan channels!",
   "TOWSIF LIVE TV provides high-performance, low-latency live streaming protocols natively.",
+  "Follow us to receive stream status alerts, request missing channels, or report technical difficulties! ",
+  "Follow us TOWSIF on 'Facebook, Instagram & Twitter' ",
   "🎉 ১০০টিরও বেশি ফ্রি লাইভ চ্যানেল — খেলাধুলা, ফিফা বিশ্বকাপ, সংবাদ, সিনেমা ও কার্টুন",
   "স্ট্রিম আপডেট এবং মতামতের জন্য ফেসবুকে আমাদের ফলো করুন!",
   "ফুলস্ক্রিনের জন্য 'F' চাপুন, প্লে/পজ করার জন্য 'Space', মিউট/আনমিউট করার জন্য 'M', এবং চ্যানেল স্ক্যান করার জন্য 'Up / Down' অ্যারো ব্যবহার করুন!",

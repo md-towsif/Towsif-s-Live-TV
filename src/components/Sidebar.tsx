@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Channel } from "../types";
 import { CHANNELS, FALLBACK_LOGO } from "../data";
 import { Search, Compass, Tv, ListCollapse } from "lucide-react";
@@ -11,6 +11,44 @@ interface SidebarProps {
 export default function Sidebar({ selectedChannel, onSelectChannel }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragInfo = useRef({ isDragging: false, startX: 0, scrollLeft: 0, hasDragged: false });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    dragInfo.current.isDragging = true;
+    dragInfo.current.hasDragged = false;
+    dragInfo.current.startX = e.pageX - scrollRef.current.offsetLeft;
+    dragInfo.current.scrollLeft = scrollRef.current.scrollLeft;
+    scrollRef.current.style.cursor = "grabbing";
+    scrollRef.current.style.userSelect = "none";
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragInfo.current.isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - dragInfo.current.startX) * 1.5; // Drag speed multiplier
+    if (Math.abs(walk) > 3) {
+      dragInfo.current.hasDragged = true;
+    }
+    scrollRef.current.scrollLeft = dragInfo.current.scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    dragInfo.current.isDragging = false;
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = "grab";
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!scrollRef.current) return;
+    if (e.deltaY !== 0) {
+      scrollRef.current.scrollLeft += e.deltaY;
+    }
+  };
 
   // Dynamically collect unique categories
   const categories = useMemo(() => {
@@ -59,12 +97,24 @@ export default function Sidebar({ selectedChannel, onSelectChannel }: SidebarPro
       </div>
 
       {/* Horizontal Category Pill Bar */}
-      <div className="flex gap-2.5 px-4 py-2 border-b border-[#1c2d45] overflow-x-auto flex-nowrap scrollbar-none flex-shrink-0">
+      <div 
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        onWheel={handleWheel}
+        className="flex gap-2.5 px-4 py-2 border-b border-[#1c2d45] overflow-x-auto flex-nowrap scrollbar-none flex-shrink-0 cursor-grab select-none active:cursor-grabbing"
+      >
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`text-[0.686rem] font-bold tracking-wide px-3.5 py-1.5 rounded-full border cursor-pointer whitespace-nowrap transition duration-150 ${
+            onClick={() => {
+              if (!dragInfo.current.hasDragged) {
+                setSelectedCategory(cat);
+              }
+            }}
+            className={`text-[0.686rem] font-bold tracking-wide px-3.5 py-1.5 rounded-full border cursor-pointer whitespace-nowrap transition duration-150 select-none ${
               selectedCategory === cat
                 ? "bg-[#00e5ff] border-[#00e5ff] text-black"
                 : "bg-transparent border-[#1c2d45] hover:border-slate-500 text-slate-400 hover:text-slate-200"
