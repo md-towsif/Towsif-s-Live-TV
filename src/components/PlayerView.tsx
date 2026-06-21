@@ -87,8 +87,19 @@ export default function PlayerView({
     if (Hls.isSupported()) {
       const hlsInstance = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
-        backBufferLength: 60,
+        lowLatencyMode: false, // Disable low-latency mode to allow a deep buffer buffer overlay
+        backBufferLength: 90,
+        maxBufferLength: 60, // Increase max buffered duration in seconds
+        maxMaxBufferLength: 120, // Allow up to 120 seconds of buffer if network allows
+        maxBufferSize: 60 * 1024 * 1024, // 60MB max buffer capacity
+        liveSyncDurationCount: 5, // Keep a safe distance (5 segments) from the live edge to absorb speed fluctuations
+        liveMaxLatencyDurationCount: 12, // Buffer limit up to 12 segments before fast-tracking
+        fragLoadingMaxRetry: 8, // Resilient retry count for loading stream segments
+        fragLoadingRetryDelay: 1000,
+        manifestLoadingMaxRetry: 5,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingMaxRetry: 5,
+        levelLoadingRetryDelay: 1000,
       });
 
       hlsRef.current = hlsInstance;
