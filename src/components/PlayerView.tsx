@@ -67,27 +67,52 @@ export default function PlayerView({
   // Setup stream whenever selected channel changes
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !selectedChannel) {
+    if (!video) return;
+
+    // Fully pause, detach, and purge previous video resources
+    const stopPlayback = () => {
+      try {
+        video.pause();
+      } catch (e) {}
+
+      // Detach and destroy HLS instance if it exists
+      if (hlsRef.current) {
+        try {
+          hlsRef.current.detachMedia();
+          hlsRef.current.destroy();
+        } catch (e) {}
+        hlsRef.current = null;
+      }
+
+      // Completely clear video source and trigger reload to stop background downloads
+      try {
+        video.src = "";
+        video.removeAttribute("src");
+        video.load();
+      } catch (e) {}
+    };
+
+    // Always clean up any previously running streams first
+    stopPlayback();
+
+    if (!selectedChannel) {
       setIsLoading(false);
       return;
     }
 
-    // Reset player state
+    // Reset player states
     setIsLoading(true);
     setHasError(false);
 
-    // Destroy existing hls.js instance
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
-
     const streamUrl = selectedChannel.url;
+
+    let nativeCanPlayHandler: (() => void) | null = null;
+    let nativeErrorHandler: (() => void) | null = null;
 
     if (Hls.isSupported()) {
       const hlsInstance = new Hls({
         enableWorker: true,
-        lowLatencyMode: false, // Disable low-latency mode to allow a deep buffer buffer overlay
+        lowLatencyMode: false, // Disable low-latency mode to allow a deep buffer
         backBufferLength: 90,
         maxBufferLength: 60, // Increase max buffered duration in seconds
         maxMaxBufferLength: 120, // Allow up to 120 seconds of buffer if network allows
@@ -129,7 +154,9 @@ export default function PlayerView({
             default:
               setIsLoading(false);
               setHasError(true);
-              hlsInstance.destroy();
+              try {
+                hlsInstance.destroy();
+              } catch (e) {}
               break;
           }
         }
@@ -139,7 +166,7 @@ export default function PlayerView({
       video.src = streamUrl;
       video.load();
 
-      const handleCanPlay = () => {
+      nativeCanPlayHandler = () => {
         video.play()
           .then(() => {
             setIsLoading(false);
@@ -149,28 +176,26 @@ export default function PlayerView({
           });
       };
 
-      const handleError = () => {
+      nativeErrorHandler = () => {
         setIsLoading(false);
         setHasError(true);
       };
 
-      video.addEventListener("canplay", handleCanPlay);
-      video.addEventListener("error", handleError);
-
-      return () => {
-        video.removeEventListener("canplay", handleCanPlay);
-        video.removeEventListener("error", handleError);
-      };
+      video.addEventListener("canplay", nativeCanPlayHandler);
+      video.addEventListener("error", nativeErrorHandler);
     } else {
       setIsLoading(false);
       setHasError(true);
     }
 
     return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
+      if (nativeCanPlayHandler) {
+        video.removeEventListener("canplay", nativeCanPlayHandler);
       }
+      if (nativeErrorHandler) {
+        video.removeEventListener("error", nativeErrorHandler);
+      }
+      stopPlayback();
     };
   }, [selectedChannel, videoRef]);
 
