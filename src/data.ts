@@ -13,7 +13,7 @@ export const CHANNELS: Channel[] = [
   
   // Sports
   { id: 8, name: "2TV Sports (FIFA)", cat: "Sports", logo: "https://stream.codecloud.bd/uploads/logos/logo_6a2bada099b77.png", url: "https://tv.cdn.xsg.ge/gpb-2tv/index.m3u8" },
-  { id: 9, name: "FIFA Plus 🇦🇷 Argentina", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://6c849fb3.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/TEctbXhfRklGQVBsdXNTcGFuaXNoLTFfSExT/playlist.m3u8" },
+  { id: 9, name: "FIFA Plus 🇦🇷 Argentina", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://ed.omener.xyz/qoozn2_720/index.m3u" },
   { id: 10, name: "FIFA Plus 🇫🇷 France", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://37b4c228.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/playlist.m3u8" },
   { id: 11, name: "FIFA Plus 🇩🇪 Germany", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://4397879b.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWRlX0ZJRkFQbHVzR2VybWFuX0hMUw/playlist.m3u8" },
   { id: 12, name: "FIFA Plus 🇮🇹 Italy", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://5d95f7d7.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWl0X0ZJRkFQbHVzSXRhbGlhbl9ITFM/playlist.m3u8" },
