@@ -1,11 +1,33 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import legacy from '@vitejs/plugin-legacy';
 import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      legacy({
+        targets: ['defaults', 'chrome >= 30', 'android >= 4', 'not IE 11'],
+        polyfills: [
+          'es.promise',
+          'es.promise.finally',
+          'es.array.iterator',
+          'es.array.find',
+          'es.array.includes',
+          'es.object.assign',
+          'es.object.keys',
+          'es.string.includes',
+          'es.string.starts-with',
+          'es.string.ends-with',
+          'es.set',
+          'es.map'
+        ],
+        modernPolyfills: true,
+      })
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

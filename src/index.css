@@ -9,7 +9,7 @@
 body {
   background: #080c18;
   color: #e2e8f0;
-  font-family: var(--font-sans);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* custom scrollbar configurations */

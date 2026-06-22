@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { Channel } from "../types";
 import { FALLBACK_LOGO } from "../data";
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Tv, Settings, Check, Wifi, AlertTriangle } from "lucide-react";
+import { 
+  Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Tv, Settings, Check, 
+  Wifi, AlertTriangle, Smartphone, Cpu, Copy, ExternalLink, HelpCircle 
+} from "lucide-react";
 
 interface PlayerViewProps {
   selectedChannel: Channel | null;
@@ -34,6 +37,86 @@ export default function PlayerView({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
   const [hasActualLevels, setHasActualLevels] = useState(false);
+
+  // Android & Wearable / Older Browser Compatibility States
+  const [playerEngine, setPlayerEngine] = useState<"auto" | "hlsjs" | "native">(() => {
+    try {
+      const stored = localStorage.getItem("iptv_player_engine");
+      if (stored) return stored as any;
+    } catch (e) {}
+
+    try {
+      if (typeof window !== "undefined" && window.navigator) {
+        const ua = window.navigator.userAgent.toLowerCase();
+        // Detect older Android (v2 through v9, including v4.4.2 KitKat) or standard Smart TV browsers
+        const isLegacyAndroid = /android\s+([0-9\._]+)/.test(ua);
+        const isSmartTV = ua.includes("smarttv") || ua.includes("googletv") || ua.includes("netcast") || ua.includes("webos") || ua.includes("tizen") || ua.includes("arc");
+        
+        if (isLegacyAndroid) {
+          const match = ua.match(/android\s+([0-9\._]+)/);
+          if (match) {
+            const ver = parseFloat(match[1]);
+            if (ver < 10.0) {
+              console.log("Legacy Android OS version " + ver + " detected. Auto defaulting to Native Player Engine for hardware performance.");
+              return "native";
+            }
+          }
+        }
+        if (isSmartTV) {
+          console.log("Smart TV agent detected. Auto defaulting to Native Player Engine.");
+          return "native";
+        }
+      }
+    } catch (e) {}
+
+    return "auto";
+  });
+
+  const [bufferProfile, setBufferProfile] = useState<"low" | "balanced" | "deep">(() => {
+    try {
+      return (localStorage.getItem("iptv_buffer_profile") as any) || "balanced";
+    } catch (e) {
+      return "balanced";
+    }
+  });
+
+  const [copied, setCopied] = useState(false);
+
+  const handleEngineChange = (engine: "auto" | "hlsjs" | "native") => {
+    setPlayerEngine(engine);
+    try {
+      localStorage.setItem("iptv_player_engine", engine);
+    } catch (e) {}
+  };
+
+  const handleBufferProfileChange = (profile: "low" | "balanced" | "deep") => {
+    setBufferProfile(profile);
+    try {
+      localStorage.setItem("iptv_buffer_profile", profile);
+    } catch (e) {}
+  };
+
+  const handleCopyLink = () => {
+    if (!selectedChannel) return;
+    try {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(selectedChannel.url);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = selectedChannel.url;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.warn("Failed to copy link via fallback commands");
+    }
+  };
 
   // Helper to force Hls quality selection based on presets (4K, 2K, 1080p, 720p, 480p, Auto)
   const applyQualityPreset = (hlsInstance: Hls, preset: string, parsedLevels: any[]) => {
@@ -113,7 +196,7 @@ export default function PlayerView({
     };
   }, [isPlaying, selectedChannel]);
 
-  // Setup stream whenever selected channel changes
+  // Setup stream whenever selected channel changes or playback engine settings change
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -180,8 +263,8 @@ export default function PlayerView({
     };
 
     const onNativeVideoError = () => {
-      // Only set error if Hls isn't active or in use
-      if (!Hls.isSupported()) {
+      // Only trigger error indicator if HLS isn't active or recovering
+      if (!hlsRef.current) {
         setIsLoading(false);
         setHasError(true);
       }
@@ -196,21 +279,54 @@ export default function PlayerView({
     let nativeCanPlayHandler: (() => void) | null = null;
     let nativeErrorHandler: (() => void) | null = null;
 
-    if (Hls.isSupported()) {
+    // Evaluate compatibility modes:
+    // Some older Android devices or custom WebViews (Android 2-10) run Hls.js with high overhead.
+    // In "auto" we default to HLS.js if supported. However, the user can force Native Player,
+    // which binds the stream url directly to the hardware's native decoding loop.
+    const useHlsjs = (playerEngine === "hlsjs") || (playerEngine === "auto" && Hls.isSupported());
+
+    if (useHlsjs) {
+      // Dynamic profile configurations for buffer length and size limits
+      const bufferConfig = {
+        low: {
+          maxBufferLength: 8,
+          maxMaxBufferLength: 15,
+          maxBufferSize: 15 * 1024 * 1024,
+          liveSyncDurationCount: 2,
+        },
+        balanced: {
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          maxBufferSize: 50 * 1024 * 1024,
+          liveSyncDurationCount: 4,
+        },
+        deep: {
+          maxBufferLength: 75,
+          maxMaxBufferLength: 150,
+          maxBufferSize: 120 * 1024 * 1024,
+          liveSyncDurationCount: 7,
+        },
+      }[bufferProfile] || {
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        maxBufferSize: 50 * 1024 * 1024,
+        liveSyncDurationCount: 4,
+      };
+
       const hlsInstance = new Hls({
         enableWorker: true,
-        lowLatencyMode: false, // Ensure optimal buffering to avoid micro-stuttering
+        lowLatencyMode: bufferProfile === "low",
         backBufferLength: 90,
-        maxBufferLength: 30, // 30s buffer is highly responsive for stable play
-        maxMaxBufferLength: 60, // Standard max limit
-        maxBufferSize: 50 * 1024 * 1024, // 50MB RAM limit for segments
-        liveSyncDurationCount: 4, // 4 segments buffer from live point
-        liveMaxLatencyDurationCount: 10,
-        fragLoadingMaxRetry: 10, // Higher retry count prevents freezing on poor routes
+        maxBufferLength: bufferConfig.maxBufferLength,
+        maxMaxBufferLength: bufferConfig.maxMaxBufferLength,
+        maxBufferSize: bufferConfig.maxBufferSize,
+        liveSyncDurationCount: bufferConfig.liveSyncDurationCount,
+        liveMaxLatencyDurationCount: bufferConfig.liveSyncDurationCount * 2.5,
+        fragLoadingMaxRetry: 12, // High resilience network profiles
         fragLoadingRetryDelay: 1000,
-        manifestLoadingMaxRetry: 6,
+        manifestLoadingMaxRetry: 8,
         manifestLoadingRetryDelay: 1000,
-        levelLoadingMaxRetry: 6,
+        levelLoadingMaxRetry: 8,
         levelLoadingRetryDelay: 1000,
       });
 
@@ -230,7 +346,7 @@ export default function PlayerView({
         setLevels(parsedLevels);
         setHasActualLevels(parsedLevels.length > 1);
 
-        // Apply selected preset constraints
+        // Apply selected preset quality constraints
         applyQualityPreset(hlsInstance, selectedPresetQuality, parsedLevels);
 
         video.play()
@@ -256,24 +372,46 @@ export default function PlayerView({
                 console.warn(`HLS Media Error (${mediaErrorCount}/3), trying automatic media recovery...`, data);
                 hlsInstance.recoverMediaError();
               } else {
-                console.error("Consecutive HLS Media Errors failed to recover. Re-initializing stream...", data);
+                console.error("Consecutive HLS Media Errors failed to recover. Reverting to system native playback...", data);
                 mediaErrorCount = 0;
+                
+                // Active rollover: attempt direct system-native stream playing when Hls.js repeatedly crashes on older browsers/tablets
                 try {
-                  hlsInstance.loadSource(streamUrl);
-                  hlsInstance.attachMedia(video);
-                } catch (e) {
-                  setHasError(true);
-                  setIsLoading(false);
-                }
+                  hlsInstance.destroy();
+                } catch (err) {}
+                hlsRef.current = null;
+                setLevels([]);
+                setHasActualLevels(false);
+
+                console.log("Loading stream on native player hardware...");
+                video.src = streamUrl;
+                video.load();
+                video.play()
+                  .then(() => setIsLoading(false))
+                  .catch(() => {
+                    setIsLoading(false);
+                    setHasError(true);
+                  });
               }
               break;
             default:
-              console.error("Unrecoverable HLS error encountered:", data);
-              setIsLoading(false);
-              setHasError(true);
+              console.error("Unrecoverable HLS engine error, falling back to native decoder:", data);
               try {
                 hlsInstance.destroy();
               } catch (e) {}
+              hlsRef.current = null;
+              setLevels([]);
+              setHasActualLevels(false);
+
+              // Standard direct system-native play attempt
+              video.src = streamUrl;
+              video.load();
+              video.play()
+                .then(() => setIsLoading(false))
+                .catch(() => {
+                  setIsLoading(false);
+                  setHasError(true);
+                });
               break;
           }
         } else {
@@ -283,8 +421,8 @@ export default function PlayerView({
           }
         }
       });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // For Safari and iOS devices that support native HLS
+    } else {
+      // Play directly via native HTML5 media pipeline (extremely smooth on Android 2-16 / Safari / Smart TV default browsers)
       video.src = streamUrl;
       video.load();
 
@@ -305,9 +443,6 @@ export default function PlayerView({
 
       video.addEventListener("canplay", nativeCanPlayHandler);
       video.addEventListener("error", nativeErrorHandler);
-    } else {
-      setIsLoading(false);
-      setHasError(true);
     }
 
     return () => {
@@ -326,7 +461,7 @@ export default function PlayerView({
       }
       stopPlayback();
     };
-  }, [selectedChannel, videoRef]);
+  }, [selectedChannel, videoRef, playerEngine, bufferProfile]);
 
   // Sync mute state on prop change
   useEffect(() => {
@@ -583,51 +718,181 @@ export default function PlayerView({
         )}
       </div>
 
-      {/* Now Playing Metadata Panel */}
+      {/* Now Playing Metadata Panel & Device Optimization Core */}
       {selectedChannel && (
-        <div className="bg-[#0b0e1a] border border-[#1c2d45]/80 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
-          <div className="flex items-center gap-4.5 w-full md:w-auto">
-            <img
-              src={selectedChannel.logo || FALLBACK_LOGO}
-              alt={selectedChannel.name}
-              className="w-12 h-12 rounded-xl object-contain border border-[#1c2d45] bg-[#111827] flex-shrink-0"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = FALLBACK_LOGO;
-              }}
-            />
-            <div className="min-w-0">
-              <h4 className="text-[#e2e8f0] font-bold text-sm tracking-wide truncate">
-                {selectedChannel.name}
-              </h4>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[0.686rem] text-slate-400 bg-slate-500/10 px-2 py-0.5 rounded border border-slate-500/10">
-                  {selectedChannel.cat}
-                </span>
-                <span className="flex items-center gap-1 text-[0.68rem] text-rose-400 font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 block animate-pulse"></span>
-                  LIVE STREAM
-                </span>
+        <div className="flex flex-col gap-4">
+          <div className="bg-[#0b0e1a] border border-[#1c2d45]/80 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center gap-4.5 w-full md:w-auto">
+              <img
+                src={selectedChannel.logo || FALLBACK_LOGO}
+                alt={selectedChannel.name}
+                className="w-12 h-12 rounded-xl object-contain border border-[#1c2d45] bg-[#111827] flex-shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = FALLBACK_LOGO;
+                }}
+              />
+              <div className="min-w-0">
+                <h4 className="text-[#e2e8f0] font-bold text-sm tracking-wide truncate">
+                  {selectedChannel.name}
+                </h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[0.686rem] text-slate-400 bg-slate-500/10 px-2 py-0.5 rounded border border-slate-500/10">
+                    {selectedChannel.cat}
+                  </span>
+                  <span className="flex items-center gap-1 text-[0.68rem] text-rose-400 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 block animate-pulse"></span>
+                    LIVE STREAM
+                  </span>
+                </div>
               </div>
+            </div>
+
+            {/* Device Shortcuts Box */}
+            <div className="hidden lg:flex items-center gap-2 flex-wrap">
+              <span className="text-[0.65rem] text-slate-500 uppercase font-bold tracking-wider mr-2">
+                Hotkeys:
+              </span>
+              <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
+                [Space] play/pause
+              </kbd>
+              <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
+                [↑ ↓] prev/next
+              </kbd>
+              <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
+                [F] fullscreen
+              </kbd>
+              <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-440 font-mono shadow">
+                [M] mute
+              </kbd>
             </div>
           </div>
 
-          {/* Device Shortcuts Box */}
-          <div className="hidden lg:flex items-center gap-2 flex-wrap">
-            <span className="text-[0.65rem] text-slate-500 uppercase font-bold tracking-wider mr-2">
-              Hotkeys:
-            </span>
-            <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
-              [Space] play/pause
-            </kbd>
-            <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
-              [↑ ↓] prev/next
-            </kbd>
-            <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-400 font-mono shadow">
-              [F] fullscreen
-            </kbd>
-            <kbd className="px-2 py-1 bg-[#111827] border border-[#1b253b] rounded text-[0.67rem] text-slate-440 font-mono shadow">
-              [M] mute
-            </kbd>
+          {/* Android 2-16 & Wearable/TV Device Smart Optimizer Controls */}
+          <div className="bg-[#0b0f1e] border border-[#1c2d45]/60 rounded-2xl p-5 shadow-lg flex flex-col gap-5">
+            <div className="flex items-start md:items-center gap-3 border-b border-[#1c2d45]/40 pb-3">
+              <div className="p-2 bg-[#00e5ff]/10 rounded-xl border border-[#00e5ff]/20">
+                <Cpu className="w-5 h-5 text-[#00e5ff]" />
+              </div>
+              <div>
+                <h4 className="text-sm font-extrabold text-white tracking-wide">
+                  Device Compatibility & Playback Tweaks
+                </h4>
+                <p className="text-[11px] text-slate-400 leading-tight">
+                  Tweak decoding engines to support all devices from Android 2-16, Smart TVs, and lightweight browsers.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row flex-wrap lg:flex-nowrap gap-5">
+              {/* Box 1: Player selection engine */}
+              <div className="space-y-2 flex-1 min-w-[250px]">
+                <label className="block text-[11px] font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#00e5ff]" />
+                  Decoder Engine
+                </label>
+                <div className="flex flex-row bg-[#070b14] border border-[#1c2d45]/70 p-1 rounded-xl">
+                  {[
+                    { id: "auto", label: "Auto" },
+                    { id: "hlsjs", label: "HLS.JS" },
+                    { id: "native", label: "Native" }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleEngineChange(item.id as any)}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+                        playerEngine === item.id 
+                          ? "bg-[#00e5ff] text-slate-955 bg-gradient-to-r from-[#00e5ff] to-[#00b4d8] font-black text-[#080d1a]"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  {playerEngine === "auto" && "Auto detects support. Best for general modern systems."}
+                  {playerEngine === "hlsjs" && "Forces JS adaptive engine. Good for manual quality level control."}
+                  {playerEngine === "native" && "Bypasses high JS overhead. Directly runs hardware acceleration (Recommended for older tablets/Android TV)."}
+                </p>
+              </div>
+
+              {/* Box 2: Buffering controls */}
+              <div className="space-y-2 flex-1 min-w-[250px]">
+                <label className="block text-[11px] font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Wifi className="w-3.5 h-3.5 text-[#00e5ff]" />
+                  Network Buffer Depth
+                </label>
+                <div className="flex flex-row bg-[#070b14] border border-[#1c2d45]/70 p-1 rounded-xl">
+                  {[
+                    { id: "low", label: "Realtime" },
+                    { id: "balanced", label: "Standard" },
+                    { id: "deep", label: "Max TV Buffer" }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleBufferProfileChange(item.id as any)}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+                        bufferProfile === item.id 
+                          ? "bg-[#00e5ff] text-slate-955 bg-gradient-to-r from-[#00e5ff] to-[#00b4d8] font-black text-[#080d1a]"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  {bufferProfile === "low" && "Very small buffer (8 seconds). Quick channel transitions, requires fast fiber internet."}
+                  {bufferProfile === "balanced" && "Balanced buffer (30 seconds). Highly resilient, best overall profile for household web browsing."}
+                  {bufferProfile === "deep" && "Huge 75-second preloading buffer (120MB chunk support) to stop loading freezes on slow WiFi."}
+                </p>
+              </div>
+
+              {/* Box 3: External Player Intent */}
+              <div className="space-y-2 flex-1 min-w-[250px]">
+                <label className="block text-[11px] font-extrabold text-[#00e5ff] uppercase tracking-wider flex items-center gap-1.5">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Smart TV & App Launchers
+                </label>
+                
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full bg-slate-900/90 hover:bg-[#162235] border border-[#1c2d45] rounded-xl text-left px-3 py-2 text-xs text-slate-300 hover:text-white flex items-center justify-between font-medium active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Copy className="w-3.5 h-3.5 text-slate-400" />
+                      {copied ? "Copied stream format!" : "Copy Stream Direct Link"}
+                    </span>
+                    <span className="text-[8px] uppercase font-bold text-[#00e5ff] bg-[#00e5ff]/10 px-1.5 py-0.5 rounded font-mono">M3U8</span>
+                  </button>
+
+                  <div className="flex flex-row gap-2">
+                    <a
+                      href={`vlc://${selectedChannel.url}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 bg-[#d97706]/10 hover:bg-[#d97706]/20 border border-[#d97706]/30 rounded-xl px-2.5 py-1.5 text-xs text-[#f59e0b] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                      title="Launch directly in VLC App"
+                    >
+                      <Cpu className="w-3.5 h-3.5" /> Launch VLC
+                    </a>
+                    <a
+                      href={`intent://${selectedChannel.url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.mxtech.videoplayer.ad;type=video/*;end`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 bg-[#0284c7]/10 hover:bg-[#0284c7]/20 border border-[#0284c7]/30 rounded-xl px-2.5 py-1.5 text-xs text-[#0ea5e9] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                      title="Launch directly in MX Player App"
+                    >
+                      <Smartphone className="w-3.5 h-3.5" /> Launch MX
+                    </a>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  Stream stuttering or black screen? Push stream with 1-click directly into external players to bypass any browser capability limit.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

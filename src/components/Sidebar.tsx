@@ -133,14 +133,14 @@ export default function Sidebar({ selectedChannel, onSelectChannel }: SidebarPro
             <p className="text-xs">No channels match your query.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-col gap-2">
+          <div className="flex flex-row flex-wrap md:flex-col gap-2">
             {filteredChannels.map((ch, idx) => {
               const isSelected = selectedChannel?.id === ch.id;
               return (
                 <div
                   key={ch.id}
                   onClick={() => onSelectChannel(ch)}
-                  className={`group flex flex-col md:flex-row items-center md:items-center gap-3 p-3 rounded-xl cursor-pointer border transition duration-150 select-none ${
+                  className={`group flex flex-col md:flex-row items-center md:items-center gap-3 p-3 rounded-xl cursor-pointer border transition duration-150 select-none w-[calc(50%-4px)] sm:w-[calc(33.333%-6px)] md:w-full ${
                     isSelected
                       ? "bg-[#00e5ff]/12 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.06)]"
                       : "bg-[#111827]/40 border-transparent hover:bg-[#162032] hover:border-[#1c2d45]"
