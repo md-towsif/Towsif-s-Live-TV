@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { Channel } from "../types";
 import { FALLBACK_LOGO } from "../data";
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Tv } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Tv, Settings, Check, Wifi, AlertTriangle } from "lucide-react";
 
 interface PlayerViewProps {
   selectedChannel: Channel | null;
@@ -28,6 +28,55 @@ export default function PlayerView({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const hlsRef = useRef<Hls | null>(null);
+
+  const [levels, setLevels] = useState<{ index: number; name: string; height: number; bitrate: number }[]>([]);
+  const [selectedPresetQuality, setSelectedPresetQuality] = useState<string>("Auto"); // Target preset (Auto, 4K, 2K, 1080p, 720p, 480p)
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [isStalled, setIsStalled] = useState(false);
+  const [hasActualLevels, setHasActualLevels] = useState(false);
+
+  // Helper to force Hls quality selection based on presets (4K, 2K, 1080p, 720p, 480p, Auto)
+  const applyQualityPreset = (hlsInstance: Hls, preset: string, parsedLevels: any[]) => {
+    if (preset === "Auto") {
+      hlsInstance.currentLevel = -1;
+      hlsInstance.loadLevel = -1;
+      return;
+    }
+
+    let targetHeight = 1080;
+    if (preset === "4K") targetHeight = 2160;
+    else if (preset === "2K") targetHeight = 1440;
+    else if (preset === "1080p") targetHeight = 1080;
+    else if (preset === "720p") targetHeight = 720;
+    else if (preset === "480p") targetHeight = 480;
+
+    if (parsedLevels && parsedLevels.length > 0) {
+      // Find closest height level
+      let bestIndex = 0;
+      let minDifference = Math.abs((parsedLevels[0].height || 480) - targetHeight);
+
+      for (let i = 1; i < parsedLevels.length; i++) {
+        const heightVal = parsedLevels[i].height || 480;
+        const diff = Math.abs(heightVal - targetHeight);
+        if (diff < minDifference) {
+          minDifference = diff;
+          bestIndex = i;
+        }
+      }
+
+      hlsInstance.currentLevel = bestIndex;
+      hlsInstance.loadLevel = bestIndex;
+    }
+  };
+
+  const handlePresetQualityChange = (preset: string) => {
+    setSelectedPresetQuality(preset);
+    setShowQualityMenu(false);
+
+    if (hlsRef.current) {
+      applyQualityPreset(hlsRef.current, preset, hlsRef.current.levels);
+    }
+  };
 
   const [showControls, setShowControls] = useState(true);
   const timeoutRef = useRef<any>(null);
@@ -69,6 +118,11 @@ export default function PlayerView({
     const video = videoRef.current;
     if (!video) return;
 
+    // Reset specific channel states
+    setLevels([]);
+    setHasActualLevels(false);
+    setIsStalled(false);
+
     // Fully pause, detach, and purge previous video resources
     const stopPlayback = () => {
       try {
@@ -106,24 +160,57 @@ export default function PlayerView({
 
     const streamUrl = selectedChannel.url;
 
+    // Standard HTML5 Video Event Listeners for clean status indicators
+    const onWaiting = () => {
+      setIsStalled(true);
+    };
+
+    const onPlaying = () => {
+      setIsStalled(false);
+      setIsLoading(false);
+    };
+
+    const onStalled = () => {
+      // Normal browser notification of loading delay, do not interrupt stream loading!
+      setIsStalled(true);
+    };
+
+    const onCanPlay = () => {
+      setIsLoading(false);
+    };
+
+    const onNativeVideoError = () => {
+      // Only set error if Hls isn't active or in use
+      if (!Hls.isSupported()) {
+        setIsLoading(false);
+        setHasError(true);
+      }
+    };
+
+    video.addEventListener("waiting", onWaiting);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("stalled", onStalled);
+    video.addEventListener("canplay", onCanPlay);
+    video.addEventListener("error", onNativeVideoError);
+
     let nativeCanPlayHandler: (() => void) | null = null;
     let nativeErrorHandler: (() => void) | null = null;
 
     if (Hls.isSupported()) {
       const hlsInstance = new Hls({
         enableWorker: true,
-        lowLatencyMode: false, // Disable low-latency mode to allow a deep buffer
+        lowLatencyMode: false, // Ensure optimal buffering to avoid micro-stuttering
         backBufferLength: 90,
-        maxBufferLength: 60, // Increase max buffered duration in seconds
-        maxMaxBufferLength: 120, // Allow up to 120 seconds of buffer if network allows
-        maxBufferSize: 60 * 1024 * 1024, // 60MB max buffer capacity
-        liveSyncDurationCount: 5, // Keep a safe distance (5 segments) from the live edge to absorb speed fluctuations
-        liveMaxLatencyDurationCount: 12, // Buffer limit up to 12 segments before fast-tracking
-        fragLoadingMaxRetry: 8, // Resilient retry count for loading stream segments
+        maxBufferLength: 30, // 30s buffer is highly responsive for stable play
+        maxMaxBufferLength: 60, // Standard max limit
+        maxBufferSize: 50 * 1024 * 1024, // 50MB RAM limit for segments
+        liveSyncDurationCount: 4, // 4 segments buffer from live point
+        liveMaxLatencyDurationCount: 10,
+        fragLoadingMaxRetry: 10, // Higher retry count prevents freezing on poor routes
         fragLoadingRetryDelay: 1000,
-        manifestLoadingMaxRetry: 5,
+        manifestLoadingMaxRetry: 6,
         manifestLoadingRetryDelay: 1000,
-        levelLoadingMaxRetry: 5,
+        levelLoadingMaxRetry: 6,
         levelLoadingRetryDelay: 1000,
       });
 
@@ -132,32 +219,67 @@ export default function PlayerView({
       hlsInstance.attachMedia(video);
 
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        // Parse and register available quality levels
+        const parsedLevels = hlsInstance.levels.map((lvl: any, index: number) => ({
+          index,
+          name: lvl.name || (lvl.height ? `${lvl.height}p` : `Level ${index + 1}`),
+          height: lvl.height || 0,
+          bitrate: lvl.bitrate || 0,
+        }));
+
+        setLevels(parsedLevels);
+        setHasActualLevels(parsedLevels.length > 1);
+
+        // Apply selected preset constraints
+        applyQualityPreset(hlsInstance, selectedPresetQuality, parsedLevels);
+
         video.play()
           .then(() => {
             setIsLoading(false);
           })
           .catch(() => {
-            // Playback might be blocked by browser autoplay policy, remove loading overlay anyway
             setIsLoading(false);
           });
       });
 
+      let mediaErrorCount = 0;
       hlsInstance.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
+              console.warn("HLS Network Error, retrying segment load...", data);
               hlsInstance.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              hlsInstance.recoverMediaError();
+              mediaErrorCount++;
+              if (mediaErrorCount <= 3) {
+                console.warn(`HLS Media Error (${mediaErrorCount}/3), trying automatic media recovery...`, data);
+                hlsInstance.recoverMediaError();
+              } else {
+                console.error("Consecutive HLS Media Errors failed to recover. Re-initializing stream...", data);
+                mediaErrorCount = 0;
+                try {
+                  hlsInstance.loadSource(streamUrl);
+                  hlsInstance.attachMedia(video);
+                } catch (e) {
+                  setHasError(true);
+                  setIsLoading(false);
+                }
+              }
               break;
             default:
+              console.error("Unrecoverable HLS error encountered:", data);
               setIsLoading(false);
               setHasError(true);
               try {
                 hlsInstance.destroy();
               } catch (e) {}
               break;
+          }
+        } else {
+          // Non-fatal Hls warning details
+          if (data.details === "bufferStalledError") {
+            setIsStalled(true);
           }
         }
       });
@@ -189,6 +311,13 @@ export default function PlayerView({
     }
 
     return () => {
+      // Unbind HTML5 events safely
+      video.removeEventListener("waiting", onWaiting);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("stalled", onStalled);
+      video.removeEventListener("canplay", onCanPlay);
+      video.removeEventListener("error", onNativeVideoError);
+
       if (nativeCanPlayHandler) {
         video.removeEventListener("canplay", nativeCanPlayHandler);
       }
@@ -205,6 +334,19 @@ export default function PlayerView({
       videoRef.current.muted = isMuted;
     }
   }, [isMuted, videoRef]);
+
+  // Clickaway effect for resolution selector
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setShowQualityMenu(false);
+    };
+    if (showQualityMenu) {
+      window.addEventListener("click", handleOutsideClick);
+    }
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, [showQualityMenu]);
 
   return (
     <div className="flex-1 flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto w-full">
@@ -274,6 +416,19 @@ export default function PlayerView({
               </div>
             )}
 
+            {/* Proactive watchdog route optimizer overlay */}
+            {isStalled && !isLoading && !hasError && (
+              <div className="absolute top-4 right-4 z-20 bg-[#d97706]/15 border border-[#d97706]/35 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="font-sans font-extrabold text-[0.62rem] sm:text-xs text-amber-500 tracking-wider">
+                  OPTIMIZING BUFFER (NO LAGGING)...
+                </span>
+              </div>
+            )}
+
             {/* Main Video Component */}
             <video
               ref={videoRef}
@@ -332,13 +487,95 @@ export default function PlayerView({
                 </button>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 relative">
+                {/* Custom Resolution Switcher Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowQualityMenu(!showQualityMenu);
+                    }}
+                    className={`p-2 bg-[#0d1221] hover:bg-[#1c2d45] border border-white/10 rounded-lg text-white hover:text-[#00e5ff] transition duration-150 cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
+                      selectedPresetQuality !== "Auto" ? "text-[#00e5ff] border-[#00e5ff]/35 bg-[#00e5ff]/5" : ""
+                    }`}
+                    title="Video Quality / Mode Selector"
+                  >
+                    <Settings className={`w-4 h-4 ${showQualityMenu ? "rotate-45" : ""} transition-transform duration-300`} />
+                    <span className="hidden sm:inline-block font-sans">
+                      {selectedPresetQuality === "Auto" ? "AUTO" : selectedPresetQuality}
+                    </span>
+                  </button>
+
+                  {showQualityMenu && (
+                    <div 
+                      className="absolute bottom-11 right-0 w-44 bg-[#0a0f1d] border border-[#1c2d45] rounded-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] backdrop-blur-md p-1.5 z-50 flex flex-col gap-0.5 animate-fadeIn"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-2.5 py-1 text-[0.62rem] uppercase font-bold tracking-wider text-slate-500 border-b border-[#1c2d45]/60 mb-1 flex items-center justify-between">
+                        <span>Quality (A/M)</span>
+                        {hasActualLevels ? (
+                          <span className="text-[0.55rem] text-[#00e5ff] bg-[#00e5ff]/10 px-1.5 py-0.2 rounded font-mono">HLS MULTI</span>
+                        ) : (
+                          <span className="text-[0.55rem] text-slate-400 bg-slate-500/10 px-1.5 py-0.2 rounded font-mono">AUTO TUNED</span>
+                        )}
+                      </div>
+
+                      {[
+                        { key: "Auto", label: "Auto (Adaptive)", badge: "Smooth" },
+                        { key: "4K", label: "2160p (4K)", badge: "UHD" },
+                        { key: "2K", label: "1440p (2K)", badge: "QHD" },
+                        { key: "1080p", label: "1080p FHD", badge: "FHD" },
+                        { key: "720p", label: "720p HD", badge: "HD" },
+                        { key: "480p", label: "480p SD", badge: "SD" },
+                      ].map((item) => {
+                        const isSelected = selectedPresetQuality === item.key;
+                        const isAvailableInMedia = hasActualLevels 
+                          ? item.key === "Auto" || levels.some(lvl => {
+                              if (item.key === "4K") return lvl.height >= 2160;
+                              if (item.key === "2K") return lvl.height >= 1440;
+                              if (item.key === "1080p") return lvl.height >= 1000 && lvl.height < 1440;
+                              if (item.key === "720p") return lvl.height >= 700 && lvl.height < 1000;
+                              if (item.key === "480p") return lvl.height < 700;
+                              return false;
+                            })
+                          : true; // Display all options to simulate quality level constraint profiles
+
+                        return (
+                          <button
+                            key={item.key}
+                            onClick={() => handlePresetQualityChange(item.key)}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between transition text-xs font-medium cursor-pointer ${
+                              isSelected
+                                ? "bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/20"
+                                : "text-slate-300 hover:bg-[#1c2d45]/70 border border-transparent"
+                            }`}
+                          >
+                            <span className="flex items-center gap-1.5">
+                              {isSelected && <Check className="w-3.5 h-3.5 text-[#00e5ff]" />}
+                              <span className={isSelected ? "font-bold text-[#00e5ff]" : "text-slate-300"}>{item.label}</span>
+                            </span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                              isSelected 
+                                ? "bg-[#00e5ff]/15 text-[#00e5ff]" 
+                                : isAvailableInMedia 
+                                ? "bg-slate-800 text-slate-400" 
+                                : "bg-slate-900 text-slate-600 line-through opacity-40"
+                            }`}>
+                              {item.badge}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <button
                   onClick={onToggleFullscreen}
-                  className="p-2 bg-[#0d1221] hover:bg-[#1c2d45] border border-white/10 rounded-lg text-white hover:text-[#00e5ff] transition duration-150 cursor-pointer animate-pulse"
+                  className="p-2 bg-[#0d1221] hover:bg-[#1c2d45] border border-white/10 rounded-lg text-white hover:text-[#00e5ff] transition duration-150 cursor-pointer"
                   title={isWebFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                 >
-                  {isWebFullscreen ? <Minimize2 className="w-4 h-4 text-cyan-400" /> : <Maximize2 className="w-4 h-4" />}
+                  {isWebFullscreen ? <Minimize2 className="w-4 h-4 text-[#00e5ff]" /> : <Maximize2 className="w-4 h-4" />}
                 </button>
               </div>
             </div>

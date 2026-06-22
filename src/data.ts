@@ -2,8 +2,8 @@ import { Channel } from "./types";
 
 export const CHANNELS: Channel[] = [
   // FIFA World Cup Live
-  { id: 1, name: "FIFA LIVE (Server 1)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://live.kooran12.cfd/tist1/index.m3u8" },
-  { id: 2, name: "beIN Sports 1", cat: "Sports", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg", url: "https://edge22.776740.ir.cdn.ir/hls2/sport.m3u8" },
+  { id: 1, name: "FIFA LIVE (Server 1)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://pub-f2987c4fc9d2450191dfee2ee8dc9f51.r2.dev/en/index.m3u8" },
+  { id: 2, name: "beIN Sports 1", cat: "Sports", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg", url: "https://sportzfylive.com/stream/hd1-argentina-x-austria-2026-06-22/manifest.m3u8" },
   { id: 3, name: "FIFA LIVE (Server 3)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://1nyaler.streamhostingcdn.top/stream/94/index.m3u8" },
   { id: 114, name: "FIFA LIVE (Server 4)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://1nyaler.streamhostingcdn.top/stream/32/index.m3u8" },
   { id: 4, name: "FIFA LIVE (Server 5)", cat: "Sports", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png", url: "https://andro.226503.xyz/checklist/androstreamlivebs1.m3u8" },
