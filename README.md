@@ -1,12 +1,12 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+<img width="1200" height="475" alt="GHBanner" src="https://i.ibb.co/cKFLxY5b/logo.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# Run and deploy your  app
 
 This contains everything you need to run your app locally.
 
-View your app in AI Studio: https://ai.studio/apps/422a7190-76f6-4ac4-8e7e-a6ac1571070e
+View your app in Towsif Porthfolio: https://towsif-hossain.vercel.app/#projects
 
 ## Run Locally
 
